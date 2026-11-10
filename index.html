@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IU No Generator</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+    body {
+      background-color: #2e7d32;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 120px;
+      margin:0;
+    }
+    .container {
+      text-align:center;
+    }
+    .title {
+      font-size:24px;
+      margin-bottom:24px;
+    }
+    .iu-display {
+      font-size:48px;
+      letter-spacing:4px;
+      margin-bottom:24px;
+    }
+    button {
+      padding:10px 24px;
+      font-size:16px;
+      border:none;
+      border-radius:4px;
+      cursor:pointer;
+      margin: 0 8px 12px;
+    }
+    .btn-generate {
+      background:#fff;
+      color:#2e7d32;
+    }
+    .btn-copy {
+      background:#1976d2;
+      color:#fff;
+    }
+    .check-area {
+      margin-top:40px;
+    }
+    input {
+      padding:8px 12px;
+      font-size:18px;
+      width:220px;
+    }
+    .tip {
+      height:22px;
+      margin-top:8px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="title">IU No Generator</div>
+  <div class="iu-display" id="iuText">--------</div>
+  <div>
+    <button class="btn-generate" onclick="generateIuNo()">Generate</button>
+    <button class="btn-copy" onclick="copyIu()">Copy to Clipboard</button>
+  </div>
+
+  <div class="check-area">
+    <div>校验IU编号</div>
+    <input type="text" id="checkInput" placeholder="输入7位IU No">
+    <button onclick="checkIuNo()">Check</button>
+    <div class="tip" id="checkTip"></div>
+  </div>
+</div>
+
+<script>
+  // 权重和后端Java代码完全一致 [3,2,8,1,6,8]
+  const weights = [3, 2, 8, 1, 6, 8];
+  let currentIU = '';
+
+  /**
+   * 和后端passIuNoCheckDigit完全相同校验逻辑
+   * @param {string} iuNo 7位数字字符串
+   * @returns {boolean}
+   */
+  function validateIuNo(iuNo) {
+    if (!/^\d{7}$/.test(iuNo)) return false;
+    let sum = 0;
+    for(let i=0; i<weights.length; i++){
+      sum += Number(iuNo[i]) * weights[i];
+    }
+    const checkDigit = (10 - (sum % 10)) % 10;
+    return checkDigit === Number(iuNo[6]);
+  }
+
+  // 生成合法IU No
+  function generateIuNo(){
+    // 随机前6位
+    let first6 = '';
+    for(let i=0;i<6;i++){
+      first6 += Math.floor(Math.random() *10);
+    }
+    let sum =0;
+    for(let i=0;i<6;i++){
+      sum += Number(first6[i]) * weights[i];
+    }
+    const checkDigit = (10 - (sum %10)) %10;
+    currentIU = first6 + checkDigit;
+    document.getElementById('iuText').innerText = currentIU;
+  }
+
+  // 复制到剪贴板
+  async function copyIu(){
+    if(!currentIU) return;
+    await navigator.clipboard.writeText(currentIU);
+    alert(`已复制：${currentIU}`);
+  }
+
+  // 校验输入
+  function checkIuNo(){
+    const val = document.getElementById('checkInput').value.trim();
+    const tipDom = document.getElementById('checkTip');
+    if(validateIuNo(val)){
+      tipDom.innerText = '✅ IU编号合法';
+      tipDom.style.color='#9f9';
+    }else{
+      tipDom.innerText = '❌ IU编号不合法';
+      tipDom.style.color='#ff8888';
+    }
+  }
+</script>
+</body>
+</html>
